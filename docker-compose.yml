@@ -1,0 +1,50 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: afdd-backend
+    command: ["./wait-for-it.sh", "rabbitmq:5672", "--", "python", "manage.py", "runserver", "0.0.0.0:5005"]
+    ports:
+      - "5005:5005"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - rabbitmq
+
+  gateway:
+    build:
+      context: ./iot_gateway
+    container_name: iot-gateway-mock
+    command: ["./wait-for-it.sh", "rabbitmq:5672", "--", "python", "iot_gateway_mock.py"]
+    volumes:
+      - ./iot_gateway:/app
+    depends_on:
+      - rabbitmq
+
+  frontend:
+    image: nginx:alpine
+    container_name: alert-frontend
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    ports:
+      - "8081:80"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbitmq_management load_definitions \"/etc/rabbitmq/definitions.json\""
+    volumes:
+      - ./rabbitmq-defs/definitions.json:/etc/rabbitmq/definitions.json
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

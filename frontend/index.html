@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alert Monitor</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f7fa;
+      color: #333;
+      padding: 2rem;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 2rem;
+    }
+
+    .alert-container {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .column {
+      flex: 1;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+      padding: 2rem;
+    }
+
+    .column h2 {
+      text-align: center;
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      color: #2c3e50;
+    }
+
+    ul.alert-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    ul.alert-list li {
+      background-color: #ffffff;
+      border: 1px solid #dfe7f5;
+      border-left: 5px solid #ff5f5f;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+      transition: all 0.3s ease;
+    }
+
+    ul.alert-list li:hover {
+      background-color: #fefefe;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .footer {
+      margin-top: 2rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #999;
+    }
+
+    .alert-datapoint {
+      font-weight: 600;
+      font-size: 1.05rem;
+      color: #2c3e50;
+    }
+
+    .alert-meta {
+      font-size: 0.9rem;
+      color: #555;
+      margin-top: 0.2rem;
+    }
+
+    .alert-meta span {
+      font-weight: 500;
+      color: #333;
+    }
+
+    .alert-time {
+      font-size: 0.85rem;
+      color: #999;
+      margin-top: 0.2rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔔 Real-time Alerts</h1>
+
+  <div class="alert-container">
+    <div class="column">
+      <h2>🚦 Threshold Alerts</h2>
+      <ul id="threshold-list" class="alert-list"></ul>
+    </div>
+    <div class="column">
+      <h2>📡 Disconnect Alerts</h2>
+      <ul id="disconnect-list" class="alert-list"></ul>
+    </div>
+  </div>
+
+  <div class="footer">
+    Powered by Supabase &mdash; AFDD Alert Monitor
+  </div>
+
+  <script>
+    const supabaseClient = supabase.createClient();
+
+    function formatDateTime(isoString) {
+      const date = new Date(isoString);
+      return date.toLocaleString();
+    }
+
+    function renderAlertCard(alert) {
+        const li = document.createElement("li");
+
+        const metadataHtml = Object.entries(alert.metadata || {})
+            .map(([key, value]) => `<div><span>${key}:</span> ${value}</div>`)
+            .join("");
+
+        const modeDisplay =
+            alert.alert_mode === "threshold"
+            ? alert.value ?? "-"
+            : "-";
+
+        li.innerHTML = `
+            <div class="alert-datapoint">${alert.datapoint.toUpperCase()}</div>
+            <div class="alert-meta">
+            <span>Value:</span> ${modeDisplay}
+            &nbsp; | &nbsp;
+            <span>Target:</span> ${alert.target_id}
+            </div>
+            <div class="alert-time">${formatDateTime(alert.alert_time)}</div>
+            <div class="alert-meta" style="margin-top: 0.5rem;">
+            <span>Metadata:</span>
+            <div style="margin-top: 0.25rem; font-size: 0.85rem; color: #444;">
+                ${metadataHtml}
+            </div>
+            </div>
+        `;
+        return li;
+    }
+
+    supabaseClient
+      .channel('alert_channel')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'afdd_fault_detection_alert',
+        },
+        (payload) => {
+          const alert = payload.new;
+
+          if (alert.acknowledged_at !== null) return;
+
+          const card = renderAlertCard(alert);
+
+          if (alert.alert_mode === "threshold") {
+            document.getElementById("threshold-list").prepend(card);
+          } else if (alert.alert_mode === "disconnect") {
+            document.getElementById("disconnect-list").prepend(card);
+          }
+        }
+      )
+      .subscribe();
+  </script>
+</body>
+</html>

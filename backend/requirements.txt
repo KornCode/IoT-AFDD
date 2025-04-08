@@ -1,0 +1,16 @@
+Django>=4.0
+djangorestframework
+asteval
+asyncpg
+autoflake
+aio_pika
+black
+dj-database-url
+isort
+supabase
+python-dotenv
+pyclean
+psycopg2-binary
+python-dotenv
+uvicorn[standard]
+watchdog[watchmedo]

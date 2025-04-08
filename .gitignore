@@ -1,0 +1,64 @@
+# ===============================
+# Python / Django (all apps)
+# ===============================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.log
+
+# Ignore env files
+.env
+.env.*
+*.env
+
+# SQLite (if used)
+*.sqlite3
+*.db
+
+# Ignore media/static (optional)
+media/
+staticfiles/
+static/
+
+# Migrations: ignore all except __init__.py
+**/migrations/*
+!**/migrations/__init__.py
+
+# ===============================
+# Node.js / Frontend (if added later)
+# ===============================
+node_modules/
+dist/
+build/
+
+# ===============================
+# Docker & editor configs
+# ===============================
+.vscode/
+.idea/
+*.swp
+*.bak
+*.tmp
+*.pid
+*.sock
+.DS_Store
+Thumbs.db
+
+# ===============================
+# Packaging & distribution
+# ===============================
+.eggs/
+*.egg-info/
+build/
+dist/
+
+# ===============================
+# Logs / coverage / test outputs
+# ===============================
+*.coverage
+coverage.xml
+htmlcov/
+pytest_cache/
+*.log
