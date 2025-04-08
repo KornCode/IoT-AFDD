@@ -168,7 +168,7 @@ Variables like `x`, `hour`, `humidity`, `presence`, etc. are dynamically passed 
 
 ## 📚 Documentation
 
-📖 **[Service Architecture Diagram (GitHub Wiki)](https://github.com/KornCode/IoT-AFDD/wiki/Service-Diagram)**
+📖 **[Seqeantial Diagrams (GitHub Wiki)](https://github.com/KornCode/IoT-AFDD/wiki/Building-Management-Flow)**
 For more insights into service flow, telemetry handling, and alert processing architecture.
 
 ---
