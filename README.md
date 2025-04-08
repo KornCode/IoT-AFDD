@@ -199,6 +199,31 @@ Example message from the simulator:
 
 ---
 
+## 🏗️ Engineering Philosophy
+
+This project was developed with a moderate focus on code quality, scalability, and real-time responsiveness, in alignment with the expectations outlined in the challenge:
+
+#### ✔️ Clean, Modular Code
+- The Django backend is organized into three self-contained apps:
+  - `management/` – Handles core entities like buildings, devices, floors, and zones.
+  - `ingestion/` – Receives and processes real-time telemetry from RabbitMQ.
+  - `fault_detection/` – Applies fault logic, session tracking, and generates alerts.
+- Each app is **fully decoupled**, with **no circular imports** between them.
+- This structure improves **maintainability**, allows **independent testing**, and makes the system **easier to scale or deploy as separate services** if needed.
+- Logic is split into clear `repository/`, `service/`, and `route/` layers for clean separation of concerns.
+- Uses `async` and `sync_to_async` where appropriate to support non-blocking, real-time processing of high-frequency telemetry streams.
+
+
+#### ✔️ Thoughtful Backend Design
+- Designed around **Supabase Realtime**, **RabbitMQ**, and **PostgreSQL** for fast, reactive telemetry handling.
+- Evaluates fault logic using `asteval` for safety and flexibility.
+- Session-based tracking avoids redundant alerts.
+
+
+This foundation is built to be extensible and ready for more sophisticated AFDD logic as the system evolves.
+
+---
+
 ## 🧱 Extendability & Future Development
 
 This project serves as a **foundational platform** for real-time IoT fault detection and diagnostics.
