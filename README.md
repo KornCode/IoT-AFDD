@@ -2,14 +2,15 @@
 
 An Automatic Fault Detection and Diagnostic (AFDD) system built for smart buildings and IoT environments.
 It includes a Django-based backend, a telemetry simulator, and a browser-based Supabase-powered frontend.
-> 📘 **Note**:
-> This project assumes that all telemetry is received in a **standardized format** from a separate IoT integration layer or gateway.
+
+> 📘 **Note**
+> This project assumes all telemetry is received in a **standardized format** from an external IoT integration layer.
 > That upstream service is responsible for:
-> - Connecting to physical devices using their native protocols (e.g., Modbus, BACnet, Zigbee, MQTT).
-> - Mapping sensor data to a **unified schema** with standardized keys such as `temperature`, `co2`, `power`, etc.
-> - Ensuring that the sensor keys match those configured in this system’s database for fault detection logic to evaluate properly.
+> - Connecting to physical devices (e.g., Modbus, BACnet, Zigbee, MQTT).
+> - Mapping sensor data to a **unified schema** with standardized keys like `temperature`, `co2`, `power`, etc.
+> - Ensuring keys match those configured in this system’s database.
 >
-> This design allows this AFDD system to remain agnostic of underlying hardware and focus purely on logic evaluation, session tracking, and alerting.
+> This lets the AFDD platform stay hardware-agnostic, focusing on logic evaluation, alerting, and session tracking.
 
 ---
 
@@ -24,7 +25,7 @@ It includes a Django-based backend, a telemetry simulator, and a browser-based S
 ### 🧬 Entity-Relationship Diagram
 ![ER Diagram](documents/ER%20Dragram.png)
 
-📘 [API Reference](documents/API.md)
+📘 [API Reference (Markdown)](documents/API.md) • [API (Postman)](https://documenter.getpostman.com/view/5413437/2sB2cVfhbL)
 
 ---
 
@@ -33,8 +34,8 @@ It includes a Django-based backend, a telemetry simulator, and a browser-based S
 | Layer      | Technology                                 |
 |------------|---------------------------------------------|
 | Backend    | Django, PostgreSQL, Supabase Realtime       |
-| Frontend   | HTML + JavaScript + Supabase SDK            |
-| Gateway    | Python, Pandas, Pika (RabbitMQ), threading  |
+| Frontend   | HTML + JS + Supabase SDK                    |
+| Gateway    | Python, Pandas, Pika (RabbitMQ)             |
 | Messaging  | RabbitMQ (Topic Exchange)                   |
 
 ---
@@ -42,74 +43,69 @@ It includes a Django-based backend, a telemetry simulator, and a browser-based S
 ## 🌐 Features
 
 ### 🔔 Fault Detection Engine
-- Threshold-based fault logic using safe `asteval` expressions.
-- Real-time alert generation & session tracking.
-- Repeat alerting with customizable intervals.
-- Smart expressions like `x > 30 and humidity < 40`.
+- Evaluates safe `asteval` expressions (e.g. `x > 30 and humidity < 40`).
+- Real-time alerting with session tracking to suppress duplicates.
+- Repeat alerting with configurable intervals.
 
 ### 📡 IoT Gateway Simulator
-- Streams telemetry from `.csv` files to RabbitMQ.
-- Supports temperature, humidity, CO₂, power, presence sensors.
-- Simulates random disconnects and publishing intervals.
-- Multithreaded for multiple sensors at once.
+- Multithreaded telemetry publisher using `.csv` sample files.
+- Simulates IAQ, power, and presence data.
+- Supports configurable publishing rate and random disconnects.
 
 ### 🖥️ Supabase Frontend
-- Simple `frontend/index.html` file.
-- Uses `@supabase/supabase-js` to **subscribe to alerts in real time**.
-- Auto-updates UI when new alerts are inserted to the DB.
-- No framework or build tools needed — works in any browser.
+- Minimal `frontend/index.html` using Supabase WebSocket.
+- Auto-updates on DB insert via `postgres_changes`.
+- Works in any browser — no React, no build step.
 
 ---
 
 ## 🚀 Getting Started (Docker)
 
-### 1. Clone the repository
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/KornCode/IoT-AFDD.git
 cd IoT-AFDD
 ```
 
-### 2. Setup `.env` file
+### 2. Configure Environment
 
-Create `backend/.env` and define:
+Create `backend/.env` with:
 
 ```env
 DJANGO_DEBUG=True
 DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
 
-# RabbitMQ
 RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/afdd
 
-# Supabase
 SUPABASE_DB_URL=
 SUPABASE_DB_PREFIX=afdd_
 ```
 
-Set Supabase connection string inside `frontend/index.html`.
+Set Supabase connection string in `frontend/index.html`.
 
 ---
 
-### 3. Start the system
+### 3. Start the System
 
 ```bash
 docker-compose up --build
 ```
 
-### 4. Run backend database migrations
-
-In a new terminal:
+### 4. Apply Database Migrations
 
 ```bash
 docker-compose exec backend python manage.py makemigrations
 docker-compose exec backend python manage.py migrate
 ```
 
----
-
 ### 5. (Optional) Load Sample Data
 
-A sample seed file is provided at `seed/sample_data.sql` for demo purposes:
+A sample SQL seed file is available at:
+
+```bash
+seed/sample_data.sql
+```
 
 ---
 
@@ -123,14 +119,14 @@ A sample seed file is provided at `seed/sample_data.sql` for demo purposes:
 
 ## 📘 API Reference
 
-- View in GitHub: **[API.md (Postman Markdown Export)](documents/API.md)**
-- View in Postman: [https://documenter.getpostman.com/view/5413437/2sB2cVfhbL](https://documenter.getpostman.com/view/5413437/2sB2cVfhbL)
+- GitHub: [documents/API.md](documents/API.md)
+- Postman: [https://documenter.getpostman.com/view/5413437/2sB2cVfhbL](https://documenter.getpostman.com/view/5413437/2sB2cVfhbL)
 
 ---
 
 ## ⚙️ Configuration
 
-Edit `iot_gateway/iot_gateway_mock.py` to simulate:
+Edit `iot_gateway/iot_gateway_mock.py`:
 
 ```python
 PUBLISH_INTERVAL_SECONDS = 5
@@ -138,7 +134,7 @@ MOCK_DISCONNECT_PROBABILITY = 0.02
 DISCONNECT_DURATION_MINUTES = (1, 2)
 ```
 
-Create alert configs via API or directly in the database:
+Example alert config:
 
 ```json
 {
@@ -155,35 +151,31 @@ Create alert configs via API or directly in the database:
 
 ## 🧠 Example Expressions
 
-These expressions can be used for alert rules:
-
 - `co2 > 1000`
 - `temperature > 30 and humidity < 40`
 - `hour >= 18 and presence == 0`
 - `energy_use_kw > 5 and time_hour < 6`
 
-Variables like `x`, `hour`, `humidity`, `presence`, etc. are dynamically passed into the expression evaluator.
+All expression variables are injected dynamically at runtime.
 
 ---
 
 ## 📚 Documentation
 
-📖 **[Seqeantial Diagrams (GitHub Wiki)](https://github.com/KornCode/IoT-AFDD/wiki/Building-Management-Flow)**
-For more insights into service flow, telemetry handling, and alert processing architecture.
+📖 **[Sequential Diagrams (GitHub Wiki)](https://github.com/KornCode/IoT-AFDD/wiki/Building-Management-Flow)**
 
 ---
 
 ## 💬 Notes
 
 - `frontend/index.html` uses Supabase’s **`postgres_changes`** to subscribe in real-time.
-- It connects directly via `@supabase/supabase-js` without any framework.
-- No build tools — just open in browser.
+- No framework required — just open in your browser.
 
 ---
 
 ## 📡 Telemetry Format
 
-Example message from the simulator:
+Example incoming message:
 
 ```json
 {
@@ -201,32 +193,30 @@ Example message from the simulator:
 
 ## 🏗️ Engineering Philosophy
 
-This project was developed with a moderate focus on code quality, scalability, and real-time responsiveness, in alignment with the expectations outlined in the challenge:
+### ✔️ Clean, Modular Code
 
-#### ✔️ Clean, Modular Code
-- The Django backend is organized into three self-contained apps:
-  - `management/` – Handles core entities like buildings, devices, floors, and zones.
-  - `ingestion/` – Receives and processes real-time telemetry from RabbitMQ.
-  - `fault_detection/` – Applies fault logic, session tracking, and generates alerts.
-- Each app is **fully decoupled**, with **no circular imports** between them.
-- This structure improves **maintainability**, allows **independent testing**, and makes the system **easier to scale or deploy as separate services** if needed.
-- Logic is split into clear `repository/`, `service/`, and `route/` layers for clean separation of concerns.
-- Uses `async` and `sync_to_async` where appropriate to support non-blocking, real-time processing of high-frequency telemetry streams.
+- Django backend is organized into 3 apps:
+  - `management/` – Core data: devices, buildings, floors, zones.
+  - `ingestion/` – RabbitMQ message consumption.
+  - `fault_detection/` – Logic evaluation and alert generation.
+- Apps are fully **decoupled** with **no circular imports**.
+- Clear architecture using `repository/`, `service/`, and `route/` layers.
+- Real-time message processing via `async`/`sync_to_async`.
 
+### ✔️ Thoughtful Backend Design
 
-#### ✔️ Thoughtful Backend Design
-- Designed around **Supabase Realtime**, **RabbitMQ**, and **PostgreSQL** for fast, reactive telemetry handling.
-- Evaluates fault logic using `asteval` for safety and flexibility.
-- Session-based tracking avoids redundant alerts.
-
-
-This foundation is built to be extensible and ready for more sophisticated AFDD logic as the system evolves.
+- Built with Supabase Realtime, RabbitMQ, and PostgreSQL for responsive telemetry handling.
+- Fault logic is evaluated using `asteval` for safety and flexibility.
+- Session-based tracking prevents duplicate alert spam.
+- Architecture is extensible to zone-, floor-, or building-level evaluations.
 
 ---
 
-## 🧱 Extendability & Future Development
+## 🧱 Future Possibilities
 
-This project serves as a **foundational platform** for real-time IoT fault detection and diagnostics.
-It is designed to be **modular, scalable, and easily extensible**.
+This project serves as a **foundation for small to medium-sized smart building systems**.
+It is modular, scalable, and extensible — enabling future features such as:
 
-> 💡 This system lays the groundwork for more advanced AFDD systems and can evolve into a robust solution for **small to medium-sized smart building environments**.
+- Aggregated logic (zone/floor/building)
+- Anomaly detection models
+- Role-based dashboards and analytics
