@@ -17,7 +17,8 @@ services:
     build:
       context: ./iot_gateway
     container_name: iot-gateway-mock
-    command: ["./wait-for-it.sh", "rabbitmq:5672", "--", "python", "iot_gateway_mock.py"]
+    restart: on-failure
+    command: ["./wait-for-it.sh", "rabbitmq:5672", "--", "bash", "-c", "sleep 5 && python iot_gateway_mock.py"]
     volumes:
       - ./iot_gateway:/app
     depends_on:
